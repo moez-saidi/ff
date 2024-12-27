@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 120
+indent-width = 4
+
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "D2", "UP", "ASYNC", "B", "A", "DJ", "Q", "RET", "SIM", "TID", "TD"]
+ignore = ["N806", "D203", "D212", "TD003", "DJ008", "SIM103", "SIM910"]
+
+
+[tool.ruff.lint.isort]
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "first-party",
+  "local-folder"
+]
+
+[tool.ruff.format]
+docstring-code-format = true

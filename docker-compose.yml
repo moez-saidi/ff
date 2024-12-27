@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      target: dev_image
+    image: dev_app
+    entrypoint: /code/entrypoint.sh
+    env_file: .env
+    expose: 
+      - "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${PWD}:/code
+    restart: always
+    depends_on:
+      - postgresdb
+
+
+  postgresdb:
+    image: postgres:${POSTGRES_VERSION}
+    env_file: .env
+    expose: 
+      - ${PGPORT}
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_volume:
