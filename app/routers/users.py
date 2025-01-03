@@ -10,12 +10,12 @@ from app.utils.users import activate_user, authenticate_user, create_user, updat
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/create", response_model=UserResponse)
+@router.post("/", response_model=UserResponse)
 async def create_new_user(user: UserCreate, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
     return await create_user(db, user)
 
 
-@router.put("/update/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}", response_model=UserResponse)
 async def update_existing_user(user_id: int, user: UserUpdate, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
     return await update_user(db, user_id, user)
 
