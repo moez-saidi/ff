@@ -1,5 +1,8 @@
 from pydantic import PostgresDsn, SecretStr
 from pydantic_settings import BaseSettings
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 
 class Settings(BaseSettings):
@@ -13,5 +16,16 @@ class Settings(BaseSettings):
 config = Settings()
 DATABASE_URI: PostgresDsn = (
     "postgresql+asyncpg://"
-    f"{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}:{config.PGPORT}/{config.POSTGRES_DB}"
+    f"{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD.get_secret_value()}@{config.POSTGRES_HOST}:{config.PGPORT}/{config.POSTGRES_DB}"
 )
+
+
+engine = create_async_engine(DATABASE_URI)
+db_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+async def get_db_session() -> AsyncSession:
+    async with db_session() as session:
+        yield session
