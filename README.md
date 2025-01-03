@@ -37,6 +37,7 @@ POSTGRES_DB=your_db_name
 POSTGRES_HOST=db
 PGPORT=5432
 POSTGRES_VERSION=17.2
+SECRET_KEY=your_secret_key_used_for_jwt
 ```
 
 **Run the Application:**
