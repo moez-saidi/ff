@@ -22,7 +22,6 @@ DATABASE_URI: PostgresDsn = (
 
 engine = create_async_engine(DATABASE_URI)
 db_session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
