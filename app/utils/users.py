@@ -3,14 +3,22 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.core.hashing import get_password_hash, verify_password
+from app.core.hashing import get_password_hash
 from app.models.users import User
-from app.schemas.users import UserCreate, UserLogin, UserUpdate
+from app.schemas.users import UserCreate, UserUpdate
+
+
+def set_user_model(user: UserCreate) -> User:
+    return User(
+        username=user.username,
+        email=user.email,
+        hashed_password=get_password_hash(user.password),
+        is_active=False,
+    )
 
 
 async def create_user(db: AsyncSession, user: UserCreate) -> User:
-    hashed_password = get_password_hash(user.password)
-    new_user = User(email=user.email, username=user.username, hashed_password=hashed_password, is_active=False)
+    new_user = set_user_model(user)
     db.add(new_user)
     try:
         await db.commit()
@@ -34,20 +42,30 @@ async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> User:
     return user
 
 
-async def activate_user(db: AsyncSession, user_id: int) -> User:
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+async def activate_user(db: AsyncSession, user: User) -> User:
     user.is_active = True
     await db.commit()
     await db.refresh(user)
     return user
 
 
-async def authenticate_user(db: AsyncSession, user: UserLogin) -> User:
-    result = await db.execute(select(User).where(User.email == user.email))
-    db_user = result.scalars().first()
-    if not user or not verify_password(user.password, db_user.hashed_password):
-        return None
-    return db_user
+async def deactivate_user(db: AsyncSession, user: User) -> User:
+    user.is_active = False
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+async def get_user_by_email(db: AsyncSession, email: str) -> User:
+    result = await db.execute(select(User).where(User.email == email))
+    return result.scalars().first()
+
+
+async def get_user_by_id(db: AsyncSession, user_id: int) -> User:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalars().first()
+
+
+async def get_users(db: AsyncSession) -> User:
+    result = await db.execute(select(User))
+    return result.scalars().all()
