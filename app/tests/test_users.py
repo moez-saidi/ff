@@ -19,13 +19,13 @@ async def test_create_user(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_list_users(client: AsyncClient, create_test_users):
+async def test_list_users(auth_client: AsyncClient, create_test_users):
     test_users = await create_test_users(4)
-    response = await client.get("/users/")
+    response = await auth_client.get("/users/")
     assert response.status_code == 200, response.json()
     users = response.json()
     assert isinstance(users, list)
-    assert len(users) == len(test_users)
+    assert len(users) == len(test_users) + 1  # Authentication user should be added
 
 
 @pytest.mark.asyncio
@@ -41,16 +41,16 @@ async def test_login(client: AsyncClient, create_test_users):
 
 
 @pytest.mark.asyncio
-async def test_activate_user_account(client: AsyncClient, create_test_users):
+async def test_activate_user_account(auth_client: AsyncClient, create_test_users):
     users = await create_test_users(1, is_active=False)
-    response = await client.put(f"/users/activate/{users[0].id}")
+    response = await auth_client.put(f"/users/activate/{users[0].id}")
     assert response.status_code == 200, response.json()
     assert response.json()["is_active"] is True
 
 
 @pytest.mark.asyncio
-async def test_deactivate_user_account(client: AsyncClient, create_test_users):
+async def test_deactivate_user_account(auth_client: AsyncClient, create_test_users):
     users = await create_test_users(1)
-    response = await client.put(f"/users/deactivate/{users[0].id}")
+    response = await auth_client.put(f"/users/deactivate/{users[0].id}")
     assert response.status_code == 200, response.json()
     assert response.json()["is_active"] is False

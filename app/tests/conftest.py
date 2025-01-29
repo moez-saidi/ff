@@ -11,6 +11,7 @@ from app.core.database import DATABASE_URI, Base
 from app.core.hashing import get_password_hash
 from app.main import app
 from app.models.users import User
+from app.utils.users import create_access_token
 
 
 @pytest.fixture(scope="session")
@@ -63,6 +64,18 @@ async def db_session(db_engine):
 @pytest.fixture(scope="function")
 async def client():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api") as ac:
+        yield ac
+
+
+@pytest.fixture(scope="function")
+async def auth_client(db_session: AsyncSession):
+    user = User(
+        username="admin", email="admin@gmail.com", hashed_password=get_password_hash("password"), is_active=True
+    )
+    db_session.add(user)
+    await db_session.commit()
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api") as ac:
+        ac.headers.update({"Authorization": f"Bearer {create_access_token(user)}"})
         yield ac
 
 
