@@ -24,6 +24,11 @@ async def get_users_api(db: AsyncSession = Depends(get_db_session)):  # noqa: B0
     return await get_users(db)
 
 
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user_api(user_id: int, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
+    return await get_user_by_id(db, user_id)
+
+
 @router.post("/", response_model=UserResponse)
 async def create_user_api(user: UserCreate, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
     return await create_user(db, user)
@@ -31,10 +36,13 @@ async def create_user_api(user: UserCreate, db: AsyncSession = Depends(get_db_se
 
 @router.put("/{user_id}", response_model=UserResponse)
 async def put_user_api(user_id: int, user: UserUpdate, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     return await update_user(db, user_id, user)
 
 
-@router.post("/activate/{user_id}", response_model=UserResponse)
+@router.put("/activate/{user_id}", response_model=UserResponse)
 async def activate_user_api(user_id: int, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
     user = await get_user_by_id(db, user_id)
     if not user:
@@ -42,7 +50,7 @@ async def activate_user_api(user_id: int, db: AsyncSession = Depends(get_db_sess
     return await activate_user(db, user)
 
 
-@router.post("/deactivate/{user_id}", response_model=UserResponse)
+@router.put("/deactivate/{user_id}", response_model=UserResponse)
 async def deactivate_user_api(user_id: int, db: AsyncSession = Depends(get_db_session)):  # noqa: B008
     user = await get_user_by_id(db, user_id)
     if not user:
@@ -57,7 +65,7 @@ async def login_api(user: UserLogin, db: AsyncSession = Depends(get_db_session))
         raise HTTPException(status_code=404, detail="User not found")
     if user_.is_active is False:
         raise HTTPException(status_code=400, detail="Inactive user")
-    if verify_password(user.password, user_.hashed_password):
+    if not verify_password(user.password, user_.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
     access_token = create_access_token(user_)
     return Token(access_token=access_token)

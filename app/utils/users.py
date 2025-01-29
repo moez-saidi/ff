@@ -31,10 +31,6 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
 
 async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> User:
     hashed_password = get_password_hash(user.password)
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
     user.username = user.username
     user.hashed_password = hashed_password
     await db.commit()
@@ -58,12 +54,12 @@ async def deactivate_user(db: AsyncSession, user: User) -> User:
 
 async def get_user_by_email(db: AsyncSession, email: str) -> User:
     result = await db.execute(select(User).where(User.email == email))
-    return result.scalars().first()
+    return result.scalar_one_or_none()
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> User:
     result = await db.execute(select(User).where(User.id == user_id))
-    return result.scalars().first()
+    return result.scalar_one_or_none()
 
 
 async def get_users(db: AsyncSession) -> User:
