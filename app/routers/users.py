@@ -66,7 +66,7 @@ async def login_api(user: UserLogin, db: AsyncSession = Depends(get_db_session))
         raise HTTPException(status_code=404, detail="User not found")
     if user_.is_active is False:
         raise HTTPException(status_code=400, detail="Inactive user")
-    if not verify_password(user.password, user_.hashed_password):
+    if not verify_password(user.password, user_.password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
     access_token = create_access_token(user_)
     return Token(access_token=access_token)

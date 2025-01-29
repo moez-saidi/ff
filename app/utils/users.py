@@ -24,7 +24,7 @@ def set_user_model(user: UserCreate) -> User:
     return User(
         username=user.username,
         email=user.email,
-        hashed_password=get_password_hash(user.password),
+        password=get_password_hash(user.password),
         is_active=False,
     )
 
@@ -42,9 +42,9 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
 
 
 async def update_user(db: AsyncSession, user_id: int, user: UserUpdate) -> User:
-    hashed_password = get_password_hash(user.password)
+    password = get_password_hash(user.password)
     user.username = user.username
-    user.hashed_password = hashed_password
+    user.password = password
     await db.commit()
     await db.refresh(user)
     return user

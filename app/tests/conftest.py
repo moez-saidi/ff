@@ -69,9 +69,7 @@ async def client():
 
 @pytest.fixture(scope="function")
 async def auth_client(db_session: AsyncSession):
-    user = User(
-        username="admin", email="admin@gmail.com", hashed_password=get_password_hash("password"), is_active=True
-    )
+    user = User(username="admin", email="admin@gmail.com", password=get_password_hash("password"), is_active=True)
     db_session.add(user)
     await db_session.commit()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api") as ac:
@@ -92,7 +90,7 @@ async def create_test_users(db_session: AsyncSession):
             user = User(
                 username=f"testuser{i}",
                 email=f"testuser{i}@example.com",
-                hashed_password=get_password_hash(f"password{i}"),
+                password=get_password_hash(f"password{i}"),
                 is_active=True,
             )
             db_session.add(user)
