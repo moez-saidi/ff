@@ -41,7 +41,7 @@ async def db_engine():
     await engine.dispose()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 async def db_session(db_engine):
     async_session_maker = sessionmaker(
         bind=db_engine,
@@ -73,7 +73,7 @@ def sync_client():
 
 @pytest.fixture(scope="function")
 async def create_test_users(db_session: AsyncSession):
-    async def _create_test_users(num_users: int = 3):
+    async def _create_test_users(num_users: int = 3, is_active: bool = True):
         users = []
         for i in range(num_users):
             user = User(
