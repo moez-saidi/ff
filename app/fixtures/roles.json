@@ -1,0 +1,27 @@
+[
+    {
+        "id": 1,
+        "name": "Admin",
+        "description": "Full control over the system, including user management and settings."
+    },
+    {
+        "id": 2,
+        "name": "Editor",
+        "description": "Can create and modify content, but cannot manage users."
+    },
+    {
+        "id": 3,
+        "name": "Support",
+        "description": "Can assist users, handle inquiries, but not modify content."
+    },
+    {
+        "id": 4,
+        "name": "Viewer",
+        "description": "Read-only access to content."
+    },
+    {
+        "id": 5,
+        "name": "Developer",
+        "description": "Access to system logs, API configurations, but not user management."
+    }
+]
