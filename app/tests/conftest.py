@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,8 +11,13 @@ from sqlalchemy.orm import sessionmaker
 from app.core.database import DATABASE_URI, Base
 from app.core.hashing import get_password_hash
 from app.main import app
+from app.models.roles import Role
 from app.models.users import User
 from app.utils.users import create_access_token
+
+roles_fixtures_file_path = "/code/app/fixtures/roles.json"
+with open(roles_fixtures_file_path) as f:
+    roles_json = json.load(f)
 
 
 @pytest.fixture(scope="session")
@@ -82,6 +88,14 @@ def sync_client():
     return TestClient(app)
 
 
+@pytest.fixture(scope="function", autouse=True)
+async def load_roles(db_session: AsyncSession):
+    for role in roles_json:
+        role = Role(id=role["id"], name=role["name"], description=role["description"])
+        db_session.add(role)
+    await db_session.commit()
+
+
 @pytest.fixture(scope="function")
 async def create_test_users(db_session: AsyncSession):
     async def _create_test_users(num_users: int = 3, is_active: bool = True):
@@ -91,7 +105,7 @@ async def create_test_users(db_session: AsyncSession):
                 username=f"testuser{i}",
                 email=f"testuser{i}@example.com",
                 password=get_password_hash(f"password{i}"),
-                is_active=True,
+                is_active=is_active,
             )
             db_session.add(user)
             users.append(user)

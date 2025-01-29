@@ -15,7 +15,13 @@ async def test_create_user(client: AsyncClient) -> None:
     response = await client.post("/users/", json=user_data)
     assert response.status_code == 200, response.json()
 
-    assert response.json() == {"id": 1, "username": "Momo", "email": "user@example.com", "is_active": False}
+    assert response.json() == {
+        "id": 1,
+        "username": "Momo",
+        "email": "user@example.com",
+        "is_active": False,
+        "role_id": 4,
+    }  # noqa: E501
 
 
 @pytest.mark.asyncio
