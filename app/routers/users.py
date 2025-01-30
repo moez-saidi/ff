@@ -26,6 +26,9 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get(
     "/",
     response_model=list[UserResponse],
+    summary="List all users",
+    description="Retrieve a list of all users. Requires ANY role privilege.",
+    response_description="A list of user objects.",
     dependencies=[
         Depends(
             require_roles(
@@ -40,7 +43,13 @@ async def get_users_api(db: Annotated[AsyncSession, Depends(get_db_session)]):
     return await get_users(db)
 
 
-@router.post("/", response_model=UserResponse)
+@router.post(
+    "/",
+    response_model=UserResponse,
+    summary="Create a new user",
+    description="Create a new user with the provided details.",
+    response_description="The created user object.",
+)
 async def create_user_api(
     user: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db_session)],
@@ -51,6 +60,9 @@ async def create_user_api(
 @router.get(
     "/{user_id}",
     response_model=UserResponse,
+    summary="Get a user by ID",
+    description="Retrieve a specific user by their ID. Requires ANY role privilege.",
+    response_description="The requested user object.",
     dependencies=[
         Depends(
             require_roles(
@@ -68,6 +80,9 @@ async def get_user_api(user_id: int, db: Annotated[AsyncSession, Depends(get_db_
 @router.put(
     "/{user_id}",
     response_model=UserResponse,
+    summary="Update a user",
+    description="Update an existing user's details. Requires EDITOR role privilege.",
+    response_description="The updated user object.",
     dependencies=[
         Depends(
             require_roles(
@@ -88,6 +103,9 @@ async def put_user_api(user_id: int, user: UserUpdate, db: Annotated[AsyncSessio
 @router.put(
     "/activate/{user_id}",
     response_model=UserResponse,
+    summary="Activate a user",
+    description="Activate a deactivated user. Requires ADMIN role privilege.",
+    response_description="The activated user object.",
     dependencies=[
         Depends(
             require_roles(
@@ -108,6 +126,9 @@ async def activate_user_api(user_id: int, db: Annotated[AsyncSession, Depends(ge
 @router.put(
     "/deactivate/{user_id}",
     response_model=UserResponse,
+    summary="Deactivate a user",
+    description="Deactivate an active user. Requires ADMIN role privilege.",
+    response_description="The deactivated user object.",
     dependencies=[
         Depends(
             require_roles(
@@ -125,7 +146,13 @@ async def deactivate_user_api(user_id: int, db: Annotated[AsyncSession, Depends(
     return await deactivate_user(db, user)
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="User login",
+    description="Authenticate a user and generate an access token.",
+    response_description="An access token for the authenticated user.",
+)
 async def login_api(
     user: UserLogin,
     db: Annotated[AsyncSession, Depends(get_db_session)],
