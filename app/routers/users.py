@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
@@ -8,6 +8,7 @@ from app.core.hashing import verify_password
 from app.models.roles import RolePrivilege
 from app.schemas.tokens import Token
 from app.schemas.users import UserCreate, UserLogin, UserResponse, UserUpdate
+from app.utils.exceptions import BadRedquestException, NotFoundException, UnauthorizedException
 from app.utils.users import (
     activate_user,
     create_access_token,
@@ -96,7 +97,7 @@ async def get_user_api(user_id: int, db: Annotated[AsyncSession, Depends(get_db_
 async def put_user_api(user_id: int, user: UserUpdate, db: Annotated[AsyncSession, Depends(get_db_session)]):
     user = await get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(detail="User not found")
     return await update_user(db, user_id, user)
 
 
@@ -119,7 +120,7 @@ async def put_user_api(user_id: int, user: UserUpdate, db: Annotated[AsyncSessio
 async def activate_user_api(user_id: int, db: Annotated[AsyncSession, Depends(get_db_session)]):
     user = await get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(detail="User not found")
     return await activate_user(db, user)
 
 
@@ -142,7 +143,7 @@ async def activate_user_api(user_id: int, db: Annotated[AsyncSession, Depends(ge
 async def deactivate_user_api(user_id: int, db: Annotated[AsyncSession, Depends(get_db_session)]):
     user = await get_user_by_id(db, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(detail="User not found")
     return await deactivate_user(db, user)
 
 
@@ -154,15 +155,15 @@ async def deactivate_user_api(user_id: int, db: Annotated[AsyncSession, Depends(
     response_description="An access token for the authenticated user.",
 )
 async def login_api(
-    user: UserLogin,
+    user_data: UserLogin,
     db: Annotated[AsyncSession, Depends(get_db_session)],
 ):
-    user_ = await get_user_by_email(db, user.email)
-    if not user_:
-        raise HTTPException(status_code=404, detail="User not found")
-    if user_.is_active is False:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    if not verify_password(user.password, user_.password):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    access_token = create_access_token(user_)
+    user = await get_user_by_email(db, user_data.email)
+    if not user:
+        raise NotFoundException(detail="User not found")
+    if user.is_active is False:
+        raise BadRedquestException(detail="User account is not active")
+    if not verify_password(user_data.password, user.password):
+        raise UnauthorizedException(detail="Invalid credentials")
+    access_token = create_access_token(user)
     return Token(access_token=access_token)
