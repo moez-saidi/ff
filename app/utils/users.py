@@ -1,8 +1,9 @@
 import os
 from datetime import UTC, datetime, timedelta
+from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,9 +11,11 @@ from sqlalchemy.future import select
 
 from app.core.database import get_db_session
 from app.core.hashing import get_password_hash
+from app.models.roles import RolePrivilege
 from app.models.users import User
 from app.schemas.tokens import TokenData
 from app.schemas.users import UserCreate, UserUpdate
+from app.utils.exceptions import ForbiddenException, UnauthorizedException
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
@@ -79,24 +82,22 @@ async def get_users(db: AsyncSession) -> User:
     return result.scalars().all()
 
 
-async def get_current_user(credentials=Depends(API_TOKEN_HEADER), db: AsyncSession = Depends(get_db_session)) -> User:  # noqa: B008
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid bearer",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+async def get_current_user(
+    credentials: Annotated[HTTPBearer, Depends(API_TOKEN_HEADER)],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> User:
     try:
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenData(**payload)
         print(token_data)
         if token_data.email is None:
-            raise credentials_exception
+            raise UnauthorizedException()
         print(token_data.email)
     except jwt.InvalidTokenError as e:
-        raise credentials_exception from e
+        raise UnauthorizedException() from e
     user = await get_user_by_email(db, token_data.email)
     if user is None:
-        raise credentials_exception
+        raise UnauthorizedException()
     return user
 
 
@@ -105,3 +106,19 @@ def create_access_token(user: User) -> str:
     expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def require_roles(allowed_roles: list[RolePrivilege]) -> User:
+    """
+    Enforces role-based access control for API endpoints
+
+    Args:
+        allowed_roles: One or more RolePrivilege granting access.
+    """
+
+    def role_permission_check(current_user: Annotated[User, Depends(get_current_user)]):
+        if current_user.role_id not in allowed_roles:
+            raise ForbiddenException()
+        return current_user
+
+    return role_permission_check
