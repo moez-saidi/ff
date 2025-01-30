@@ -4,6 +4,7 @@ from app.core.database import Base
 
 
 class RolePrivilege:
+    ANY = 0
     ADMIN = 1
     EDITOR = 2
     SUPPORT = 3

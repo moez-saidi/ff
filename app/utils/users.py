@@ -117,6 +117,8 @@ def require_roles(allowed_roles: list[RolePrivilege]) -> User:
     """
 
     def role_permission_check(current_user: Annotated[User, Depends(get_current_user)]):
+        if RolePrivilege.ANY in allowed_roles:
+            return current_user
         if current_user.role_id not in allowed_roles:
             raise ForbiddenException()
         return current_user
