@@ -75,7 +75,13 @@ async def client():
 
 @pytest.fixture(scope="function")
 async def auth_client(db_session: AsyncSession):
-    user = User(username="admin", email="admin@gmail.com", password=get_password_hash("password"), is_active=True)
+    user = User(
+        username="admin",
+        email="admin@gmail.com",
+        password=get_password_hash("password"),
+        is_active=True,
+        role_id=1,
+    )
     db_session.add(user)
     await db_session.commit()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api") as ac:
