@@ -104,12 +104,13 @@ async def load_roles(db_session: AsyncSession):
 
 @pytest.fixture(scope="function")
 async def create_test_users(db_session: AsyncSession):
-    async def _create_test_users(num_users: int = 3, is_active: bool = True):
+    async def _create_test_users(count: int = 3, is_active: bool = True):
         users = []
-        for i in range(num_users):
+        prefix = "" if is_active else "inactive_"
+        for i in range(count):
             user = User(
                 username=f"testuser{i}",
-                email=f"testuser{i}@example.com",
+                email=f"{prefix}testuser{i}@example.com",
                 password=get_password_hash(f"password{i}"),
                 is_active=is_active,
             )
