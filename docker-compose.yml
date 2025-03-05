@@ -26,5 +26,29 @@ services:
       - postgres_volume:/var/lib/postgresql/data
     restart: always
 
+
+  rabbitmq:
+    image: rabbitmq:4.0.7-management
+    expose:
+      - ${RABBITMQ_PORT}
+    env_file: .env
+    volumes:
+      - rabbitmq_volume:/var/lib/rabbitmq
+    restart: always
+  
+  worker:
+    build:
+      context: .
+      target: dev_image
+    image: dev_app
+    env_file: .env
+    command: celery -A app.worker.celery worker --loglevel=info
+    volumes:
+      - ${PWD}:/code
+    depends_on:
+      - rabbitmq
+      - postgresdb
+
 volumes:
   postgres_volume:
+  rabbitmq_volume:

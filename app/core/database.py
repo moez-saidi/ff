@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 
-class Settings(BaseSettings):
+class DBSettings(BaseSettings):
     POSTGRES_USER: str
     PGPORT: int
     POSTGRES_DB: str
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: SecretStr
 
 
-config = Settings()
+config = DBSettings()
 DATABASE_URI: PostgresDsn = (
     "postgresql+asyncpg://"
     f"{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD.get_secret_value()}@{config.POSTGRES_HOST}:{config.PGPORT}/{config.POSTGRES_DB}"
