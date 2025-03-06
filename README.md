@@ -1,47 +1,107 @@
 # FastAPI Project with PostgreSQL and Alembic
 
-## Project Overview
+## 🚀 Project Overview
 
-This is a **FastAPI** project with a **PostgreSQL** database and **Alembic** for migrations. The project is containerized using Docker and includes a basic setup for API endpoints, database models, and migrations.
-
----
-
-## Features
-
-- **FastAPI** for building APIs.
-- **PostgreSQL** for the database.
-- **Alembic** for migrations.
-- **Docker Compose** for containerized deployment.
-- **Auto-reload** during development.
+This project is built with **FastAPI**, **PostgreSQL**, and **Alembic** to provide a scalable and efficient API. It is fully containerized using **Docker Compose** and includes automatic reloading during development.
 
 ---
 
-## Getting Started
+## ✨ Features
 
-### Prerequisites
+- ⚡ **FastAPI** - High-performance web framework for APIs.
+- 🗄️ **PostgreSQL** - Powerful, open-source relational database.
+- 🔄 **Alembic** - Database migration management.
+- 🐳 **Docker Compose** - Containerized deployment.
+- 🔁 **Auto-reload** - Automatically refreshes during development.
 
-- Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
-- Python 3.11
-- precommit install
+---
 
-### Steps to Run
+## 🛠️ Getting Started
 
-**Set Up Environment Variables:**
+### 📌 Prerequisites
 
-Create a .env file in the project root with the following:
+Ensure you have the following installed:
 
-```bash
-POSTGRES_USER=your_username
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=your_db_name
-POSTGRES_HOST=db
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- Python **3.11**
+- Pre-commit hooks (`pre-commit install`)
+
+---
+
+### 📄 Environment Configuration
+
+Create a **`.env`** file in the project root with the following variables:
+
+```ini
+# PostgreSQL Configuration
+POSTGRES_USER=db_user
+POSTGRES_PASSWORD=db_pass
+POSTGRES_DB=db
+POSTGRES_HOST=postgresdb
 PGPORT=5432
 POSTGRES_VERSION=17.2
+
+# Security
 SECRET_KEY=your_secret_key_used_for_jwt
+
+# RabbitMQ Configuration
+RABBITMQ_DEFAULT_USER=guest
+RABBITMQ_DEFAULT_PASS=guest_pass
+RABBITMQ_PORT=5672
 ```
 
-**Run the Application:**
+---
+
+## 🚀 Running the Application
+
+### 🔹 Start the Application
 
 ```bash
 docker compose -p ff --env-file .env up -d --build
 ```
+
+### 🔹 Stop and Remove Containers
+
+```bash
+docker compose -p ff --env-file .env down -v
+```
+
+---
+
+## 📌 Additional Notes
+
+- Ensure your `.env` file is correctly configured before starting the application.
+- You can modify the `docker-compose.yml` file to adjust container settings.
+- Logs can be viewed using:
+
+  ```bash
+  docker logs -f <container_name>
+  ```
+
+- To run database migrations with Alembic:
+
+  ```bash
+  alembic upgrade head
+  ```
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 💡 Contributing
+
+Contributions are welcome! Feel free to fork this repository, make improvements, and submit a pull request.
+
+---
+
+## 📞 Contact
+
+For questions or support, please open an issue or reach out to the maintainer.
+
+---
+
