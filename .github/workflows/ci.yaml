@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff Linter
+        run: ruff check .
+
+      - name: Copy environment variables
+        run: cp env.template .env
+
+      - name: Set up Docker Compose
+        run: docker compose -p test --env-file .env up -d --build
+
+      - name: Run Tests
+        run: |
+          docker exec test-app-1 pytest
+
+      - name: Tear Down
+        run: docker compose -p test --env-file .env down -v
