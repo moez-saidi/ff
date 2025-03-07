@@ -11,8 +11,10 @@ class RabbitMQSettings(BaseSettings):
 
 config = RabbitMQSettings()
 
-celery = Celery(
+app = Celery(
     "worker",
     broker=f"pyamqp://{config.RABBITMQ_DEFAULT_USER}:{config.RABBITMQ_DEFAULT_PASS.get_secret_value()}@rabbitmq:{config.RABBITMQ_PORT}//",
     backend="rpc://",
 )
+
+app.autodiscover_tasks(["app.worker.tasks"], force=True)
