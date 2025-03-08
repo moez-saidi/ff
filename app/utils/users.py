@@ -16,6 +16,7 @@ from app.models.users import User
 from app.schemas.tokens import TokenData
 from app.schemas.users import UserCreate, UserUpdate
 from app.utils.exceptions import ForbiddenException, UnauthorizedException
+from app.worker.tasks.users import post_registration
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 ALGORITHM = "HS256"
@@ -38,6 +39,7 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
     try:
         await db.commit()
         await db.refresh(new_user)
+        post_registration.delay()
         return new_user
     except IntegrityError as e:
         await db.rollback()
