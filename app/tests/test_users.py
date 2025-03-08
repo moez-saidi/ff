@@ -1,5 +1,6 @@
 import random
 import string
+from unittest.mock import patch
 
 import pytest
 from httpx import AsyncClient
@@ -7,7 +8,8 @@ from starlette import status
 
 
 @pytest.mark.asyncio
-async def test_create_user(client: AsyncClient) -> None:
+@patch("app.worker.tasks.users.post_registration.delay")
+async def test_create_user(mocked_post_registration, client: AsyncClient) -> None:
     user_data = {
         "username": "Momo",
         "email": "user@example.com",
@@ -23,6 +25,7 @@ async def test_create_user(client: AsyncClient) -> None:
         "is_active": False,
         "role_id": 4,
     }  # noqa: E501
+    mocked_post_registration.assert_called_once()
 
 
 @pytest.mark.asyncio
